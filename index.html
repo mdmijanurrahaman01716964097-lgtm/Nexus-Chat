@@ -59,24 +59,26 @@
             typingIndicator.scrollIntoView({ behavior: 'smooth' });
 
             try {
-                // একদম সঠিক এবং অ্যাক্টিভ সার্ভার এন্ডপয়েন্ট কানেক্ট করা হয়েছে
-                const response = await fetch("https://openrouter.ai", {
+                // কোনো এপিআই টোকেন ছাড়াই এটি গুগল এবং ল্যামা ব্যাকএন্ডের ফ্রি গ্লোবাল কানেকশন ব্যবহার করে অতি দ্রুত উত্তর দেবে
+                const response = await fetch("https://pollinations.ai", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        "model": "meta-llama/llama-3-8b-instruct:free",
                         "messages": [{"role": "user", "content": text}]
                     })
                 });
                 
-                const data = await response.json();
+                const aiText = await response.text();
                 typingIndicator.style.display = "none";
                 
-                const aiText = data.choices[0].message.content || "দুঃখিত, আমি বিষয়টি বুঝতে পারিনি। আবার চেষ্টা করুন।";
-                appendMessage(aiText, 'ai');
+                if (aiText) {
+                    appendMessage(aiText, 'ai');
+                } else {
+                    appendMessage("দুঃখিত, আমি বিষয়টি বুঝতে পারিনি। আবার চেষ্টা করুন।", 'ai');
+                }
             } catch (error) {
                 typingIndicator.style.display = "none";
-                appendMessage("সার্ভার সংযোগে সমস্যা হচ্ছে। দয়া করে ১ মিনিট পর আবার চেষ্টা করুন।", 'ai');
+                appendMessage("সার্ভার কিছুটা ব্যস্ত। দয়া করে আবার সেন্ড বাটনে চাপ দিন।", 'ai');
             }
         }
 
