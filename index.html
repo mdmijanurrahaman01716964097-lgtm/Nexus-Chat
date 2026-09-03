@@ -3,41 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Chat - Global AI Assistant</title>
+    <title>Nexus Chat - Pro AI Assistant</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #343541; color: #ececf1; display: flex; flex-direction: column; height: 100vh; }
-        .header { background-color: #202123; text-align: center; padding: 15px; font-size: 20px; font-weight: bold; border-bottom: 1px solid #4d4d4f; letter-spacing: 1px; }
-        .chat-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background-color: #343541; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #343541; color: #ececf1; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* চ্যাটজিপিটির মতো বাম পাশের সাইডবার */
+        .sidebar { width: 260px; background-color: #202123; padding: 10px; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid #4d4d4f; }
+        .new-chat-btn { background: transparent; border: 1px solid #4d4d4f; color: white; padding: 12px; border-radius: 5px; cursor: pointer; text-align: left; font-size: 14px; font-weight: bold; transition: 0.2s; }
+        .new-chat-btn:hover { background-color: #2a2b32; }
+        .menu-title { font-size: 12px; color: #8e8ea0; font-weight: bold; margin-top: 15px; padding-left: 5px; }
+        .history-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .history-item { padding: 10px; border-radius: 5px; font-size: 14px; cursor: pointer; color: #ececf1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .history-item:hover { background-color: #2a2b32; }
+        
+        /* মেইন চ্যাট এরিয়া */
+        .main-content { flex: 1; display: flex; flex-direction: column; background-color: #343541; height: 100vh; position: relative; }
+        .header { background-color: #202123; text-align: center; padding: 15px; font-size: 18px; font-weight: bold; border-bottom: 1px solid #4d4d4f; }
+        .chat-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
         .message-wrapper { display: flex; width: 100%; }
         .message-wrapper.user { justify-content: flex-end; }
         .message-wrapper.ai { justify-content: flex-start; }
         .message { padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.6; font-size: 16px; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .user .message { background-color: #10a37f; color: white; border-bottom-right-radius: 2px; }
         .ai .message { background-color: #444654; color: #ececf1; border-bottom-left-radius: 2px; border: 1px solid #4d4d4f; }
-        .ai img { max-width: 100%; border-radius: 10px; margin-top: 10px; display: block; border: 1px solid #555; }
-        .input-area { padding: 20px; background-color: #343541; display: flex; justify-content: center; }
-        .input-wrapper { width: 100%; max-width: 800px; display: flex; background-color: #40414f; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); border: 1px solid #4d4d4f; overflow: hidden; }
+        .ai img { max-width: 100%; border-radius: 10px; margin-top: 10px; display: block; }
+        
+        .input-area { padding: 20px; display: flex; justify-content: center; background-image: linear-gradient(180deg,rgba(53,55,64,0),#353740 30%); }
+        .input-wrapper { width: 100%; max-width: 700px; display: flex; background-color: #40414f; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); border: 1px solid #4d4d4f; overflow: hidden; }
         input { flex: 1; padding: 15px; background: transparent; border: none; font-size: 16px; color: white; outline: none; }
-        input::placeholder { color: #8e8ea0; }
-        button { padding: 0 25px; background-color: transparent; color: #10a37f; border: none; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button { padding: 0 20px; background-color: transparent; color: #10a37f; border: none; font-size: 16px; font-weight: bold; cursor: pointer; }
         .typing-indicator { align-self: flex-start; background-color: #444654; padding: 12px 18px; border-radius: 15px; border: 1px solid #4d4d4f; display: none; font-style: italic; color: #8e8ea0; }
+        
+        /* মোবাইলের জন্য সাইডবার রেসপন্সিভ */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">🌐 Nexus Chat & Image AI</div>
-    <div class="chat-container" id="chatContainer">
-        <div class="message-wrapper ai">
-            <div class="message">হ্যালো! আমি Nexus Chat। চ্যাটজিপিটির মতো আমি আপনাকে যেকোনো প্রশ্নের উত্তর দিতে পারি। <br><br><b>💡 নতুন ফিচার:</b> আপনি যদি কোনো ছবি বানাতে চান, তবে মেসেজের শুরুতে <b>"image"</b> অথবা <b>"ছবি"</b> লিখে আপনার বর্ণনাটি লিখুন (যেমন: <i>"image a green flying car"</i>)। আমি সাথে সাথে ছবি বানিয়ে দেব!</div>
+    <!-- চ্যাটজিপিটির মতো বাম পাশের অপশন মেনু -->
+    <div class="sidebar">
+        <button class="new-chat-btn" onclick="clearChat()">＋ New Chat</button>
+        <div class="menu-title">Recents / আগের চ্যাট</div>
+        <div class="history-list" id="historyList">
+            <div class="history-item">💬 তুমি কেমন আছ?</div>
+            <div class="history-item">💬 এআই প্রজেক্ট পরিকল্পনা</div>
+            <div class="history-item">💬 ছবি পরিষ্কার করা</div>
         </div>
     </div>
-    <div class="typing-indicator" id="typingIndicator">Nexus Chat প্রসেস করছে...</div>
 
-    <div class="input-area">
-        <div class="input-wrapper">
-            <input type="text" id="userInput" placeholder="প্রশ্ন লিখুন অথবা 'image ...' লিখে ছবি বানান..." onkeypress="handleKeyPress(event)">
-            <button onclick="sendMessage()">Send</button>
+    <!-- মেইন চ্যাট স্ক্রিন -->
+    <div class="main-content">
+        <div class="header">🌐 Nexus Chat & Image Pro</div>
+        <div class="chat-container" id="chatContainer">
+            <div class="message-wrapper ai">
+                <div class="message">হ্যালো! আমি Nexus Chat Pro। চ্যাটজিপিটির মতো আমি এখন সব অপশন সহ রেডি। <br><br><b>💡 ছবি তৈরি:</b> মেসেজের শুরুতে <b>"image"</b> লিখে সার্চ করুন (যেমন: <i>"image a cat"</i>)।</div>
+            </div>
+        </div>
+        <div class="typing-indicator" id="typingIndicator">Nexus Chat উত্তর তৈরি করছে...</div>
+
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input type="text" id="userInput" placeholder="যেকোনো প্রশ্ন এখানে লিখুন..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Send</button>
+            </div>
         </div>
     </div>
 
@@ -59,44 +90,21 @@
             document.getElementById("chatContainer").appendChild(typingIndicator);
             typingIndicator.scrollIntoView({ behavior: 'smooth' });
 
-            // চেক করা হচ্ছে ইউজার ছবি বানাতে চাচ্ছে কিনা
-            const isImageRequest = text.toLowerCase().startsWith("image") || text.startsWith("ছবি");
-
-            if (isImageRequest) {
-                try {
-                    let prompt = text.replace(/^image/i, "").replace(/^ছবি/, "").trim();
-                    if(!prompt) prompt = "beautiful nature scenery";
-                    
-                    // বিশ্বমানের ফ্রি ফ্ল্যাক্স এআই ইমেজ জেনারেটর এন্ডপয়েন্ট
-                    const imageUrl = `https://pollinations.ai{encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true`;
-                    
-                    typingIndicator.style.display = "none";
-                    appendImageMessage(imageUrl, `আপনার তৈরি করা ছবি: "${prompt}"`);
-                } catch (error) {
-                    typingIndicator.style.display = "none";
-                    appendMessage("দুঃখিত, এই মুহূর্তে ছবি তৈরি করা যাচ্ছে না।", 'ai');
-                }
+            if (text.toLowerCase().startsWith("image")) {
+                let prompt = text.replace(/^image/i, "").trim();
+                const imageUrl = `https://pollinations.ai{encodeURIComponent(prompt)}?width=512&height=512&nologo=true`;
+                typingIndicator.style.display = "none";
+                appendImageMessage(imageUrl, `আপনার ছবি: "${prompt}"`);
             } else {
                 try {
-                    const response = await fetch("https://pollinations.ai", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            "messages": [{"role": "user", "content": text}]
-                        })
-                    });
-                    
+                    // সুপার-ফাস্ট নিরবচ্ছিন্ন রেসপন্স এন্ডপয়েন্ট
+                    const response = await fetch(`https://pollinations.ai{encodeURIComponent(text)}`);
                     const aiText = await response.text();
                     typingIndicator.style.display = "none";
-                    
-                    if (aiText) {
-                        appendMessage(aiText, 'ai');
-                    } else {
-                        appendMessage("দুঃখিত, আমি বিষয়টি বুঝতে পারিনি। আবার চেষ্টা করুন।", 'ai');
-                    }
+                    appendMessage(aiText || "আমি বিষয়টি বুঝতে পারিনি।", 'ai');
                 } catch (error) {
                     typingIndicator.style.display = "none";
-                    appendMessage("সার্ভার কিছুটা ব্যস্ত। দয়া করে আবার চেষ্টা করুন।", 'ai');
+                    appendMessage("সার্ভার সংযোগে সামান্য সমস্যা, আবার সেন্ড করুন।", 'ai');
                 }
             }
         }
@@ -105,11 +113,9 @@
             const container = document.getElementById("chatContainer");
             const wrapper = document.createElement("div");
             wrapper.classList.add("message-wrapper", sender);
-            
             const msgDiv = document.createElement("div");
             msgDiv.classList.add("message");
             msgDiv.innerText = text;
-            
             wrapper.appendChild(msgDiv);
             container.appendChild(wrapper);
             container.scrollTop = container.scrollHeight;
@@ -119,19 +125,15 @@
             const container = document.getElementById("chatContainer");
             const wrapper = document.createElement("div");
             wrapper.classList.add("message-wrapper", 'ai');
-            
             const msgDiv = document.createElement("div");
             msgDiv.classList.add("message");
-            msgDiv.innerHTML = `<div>${caption}</div><img src="${url}" alt="AI Generated Image" onload="scrollToBottom()">`;
-            
+            msgDiv.innerHTML = `<div>${caption}</div><img src="${url}" alt="AI Photo" style="width:100%; max-width:300px;" onload="document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;">`;
             wrapper.appendChild(msgDiv);
             container.appendChild(wrapper);
-            scrollToBottom();
         }
 
-        function scrollToBottom() {
-            const container = document.getElementById("chatContainer");
-            container.scrollTop = container.scrollHeight;
+        function clearChat() {
+            document.getElementById("chatContainer").innerHTML = '<div class="message-wrapper ai"><div class="message">নতুন চ্যাট শুরু হয়েছে! কী জানতে চান?</div></div>';
         }
     </script>
 </body>
