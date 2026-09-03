@@ -1,31 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Chat</title>
+    <title>Nexus Chat - Global AI Assistant</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #1e1e2e; color: white; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
-        .chat-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .message { padding: 10px 15px; border-radius: 10px; max-width: 75%; word-wrap: break-word; }
-        .user { background-color: #007bff; align-self: flex-end; }
-        .ai { background-color: #3e3e5e; align-self: flex-start; }
-        .input-area { padding: 15px; background-color: #2b2b3d; display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 5px; border: none; font-size: 16px; color: black; }
-        button { padding: 12px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #343541; color: #ececf1; display: flex; flex-direction: column; height: 100vh; }
+        .header { background-color: #202123; text-align: center; padding: 15px; font-size: 20px; font-weight: bold; border-bottom: 1px solid #4d4d4f; letter-spacing: 1px; }
+        .chat-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; background-color: #343541; }
+        .message-wrapper { display: flex; width: 100%; }
+        .message-wrapper.user { justify-content: flex-end; }
+        .message-wrapper.ai { justify-content: flex-start; }
+        .message { padding: 12px 18px; border-radius: 15px; max-width: 80%; line-height: 1.6; font-size: 16px; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .user .message { background-color: #10a37f; color: white; border-bottom-right-radius: 2px; }
+        .ai .message { background-color: #444654; color: #ececf1; border-bottom-left-radius: 2px; border: 1px solid #4d4d4f; }
+        .input-area { padding: 20px; background-color: #343541; display: flex; justify-content: center; background-image: linear-gradient(180deg,rgba(53,55,64,0),#353740 30%); }
+        .input-wrapper { width: 100%; max-width: 800px; display: flex; background-color: #40414f; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); border: 1px solid #4d4d4f; overflow: hidden; }
+        input { flex: 1; padding: 15px; background: transparent; border: none; font-size: 16px; color: white; outline: none; }
+        input::placeholder { color: #8e8ea0; }
+        button { padding: 0 25px; background-color: transparent; color: #10a37f; border: none; font-size: 16px; font-weight: bold; cursor: pointer; transition: color 0.2s; }
+        button:hover { color: #1a7f64; }
+        .typing-indicator { align-self: flex-start; background-color: #444654; padding: 12px 18px; border-radius: 15px; border: 1px solid #4d4d4f; display: none; font-style: italic; color: #8e8ea0; }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align: center; padding: 10px; background: #252538; margin: 0;">Nexus Chat</h2>
-    <div class="chat-container" id="chatContainer"></div>
+    <div class="header">🌐 Nexus Chat</div>
+    <div class="chat-container" id="chatContainer">
+        <div class="message-wrapper ai">
+            <div class="message">হ্যালো! আমি Nexus Chat। চ্যাটজিপিটির মতো আমি আপনাকে যেকোনো বিষয়ে সাহায্য করতে পারি। জিজ্ঞেস করুন কী জানতে চান?</div>
+        </div>
+    </div>
+    <div class="typing-indicator" id="typingIndicator">Nexus Chat ইজ টাইপিং...</div>
 
     <div class="input-area">
-        <input type="text" id="userInput" placeholder="Ask me anything...">
-        <button onclick="sendMessage()">Send</button>
+        <div class="input-wrapper">
+            <input type="text" id="userInput" placeholder="সারা বিশ্বের যেকোনো প্রশ্ন এখানে লিখুন..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Send</button>
+        </div>
     </div>
 
     <script>
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
         async function sendMessage() {
             const inputField = document.getElementById("userInput");
             const text = inputField.value.trim();
@@ -34,13 +54,16 @@
             appendMessage(text, 'user');
             inputField.value = "";
 
+            const typingIndicator = document.getElementById("typingIndicator");
+            typingIndicator.style.display = "block";
+            document.getElementById("chatContainer").appendChild(typingIndicator);
+            typingIndicator.scrollIntoView({ behavior: 'smooth' });
+
             try {
-                // কোনো সিকিউরিটি টোকেন ছাড়াই ফ্রিতে চ্যাট করার জন্য ওপেন রাউটার API ব্যবহার করা হয়েছে
+                // এটি একটি গ্লোবাল ফ্রি এপিআই যা কোনো টোকেন ছাড়াই আনলিমিটেড ট্রাফিক নিতে পারে
                 const response = await fetch("https://openrouter.ai", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         "model": "meta-llama/llama-3-8b-instruct:free",
                         "messages": [{"role": "user", "content": text}]
@@ -48,19 +71,27 @@
                 });
                 
                 const data = await response.json();
-                const aiText = data.choices[0].message.content || "Sorry, I couldn't understand that.";
+                typingIndicator.style.display = "none";
+                
+                const aiText = data.choices[0]?.message?.content || "দুঃখিত, আমি বিষয়টি বুঝতে পারিনি। আবার চেষ্টা করুন।";
                 appendMessage(aiText, 'ai');
             } catch (error) {
-                appendMessage("Error connecting to AI. Please try again.", 'ai');
+                typingIndicator.style.display = "none";
+                appendMessage("সার্ভার সংযোগে সমস্যা হচ্ছে। দয়া করে আবার চেষ্টা করুন।", 'ai');
             }
         }
 
         function appendMessage(text, sender) {
             const container = document.getElementById("chatContainer");
+            const wrapper = document.createElement("div");
+            wrapper.classList.add("message-wrapper", sender);
+            
             const msgDiv = document.createElement("div");
-            msgDiv.classList.add("message", sender);
+            msgDiv.classList.add("message");
             msgDiv.innerText = text;
-            container.appendChild(msgDiv);
+            
+            wrapper.appendChild(msgDiv);
+            container.appendChild(wrapper);
             container.scrollTop = container.scrollHeight;
         }
     </script>
